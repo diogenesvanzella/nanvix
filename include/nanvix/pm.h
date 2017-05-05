@@ -36,10 +36,11 @@
 	#include <sys/types.h>
 	#include <limits.h>
 	#include <signal.h>
-	
-	/**
-	 * @name Superuser credentials
-	 */
+#include "const.h"
+
+/**
+ * @name Superuser credentials
+ */
 	/**@{*/
 	#define SUPERUSER  0 /**< Superuser ID.       */
 	#define SUPERGROUP 0 /**< Superuser group ID. */
