@@ -24,11 +24,6 @@
 #include <nanvix/pm.h>
 #include <signal.h>
 #include <nanvix/klib.h>
-#include "../../../include/nanvix/hal.h"
-#include "../../../include/nanvix/pm.h"
-#include "../../../include/nanvix/config.h"
-#include "../../../include/nanvix/const.h"
-#include "../../../include/nanvix/clock.h"
 
 /**
  * @brief Schedules a process to execution.
