@@ -24,6 +24,16 @@
 #include <nanvix/pm.h>
 #include <signal.h>
 
+unsigned long int seed = 1;
+int rand(void) {
+	seed = seed * 1103515245 + 12345;
+	return (unsigned int) (seed/65536) % 32768;
+}
+
+int next_process(int total_ticket){
+	return rand()*total_ticket/32768;
+}
+
 /**
  * @brief Schedules a process to execution.
  * 
@@ -66,6 +76,7 @@ PUBLIC void yield(void)
 {
 	struct process *p;    /* Working process.     */
 	struct process *next; /* Next process to run. */
+	int tickets_sum = 0; /* Number of tickets of all process. */
 
 	/* Re-schedule process for execution. */
 	if (curr_proc->state == PROC_RUNNING)
@@ -84,32 +95,28 @@ PUBLIC void yield(void)
 		/* Alarm has expired. */
 		if ((p->alarm) && (p->alarm < ticks))
 			p->alarm = 0, sndsig(p, SIGALRM);
+
+		/* count tickets of all process */
+		tickets_sum += p->tickets;
 	}
 
 	/* Choose a process to run next. */
 	next = IDLE;
-	for (p = FIRST_PROC; p <= LAST_PROC; p++)
+	/* get a random number between zero-tickets_sum. */
+	int ticket_sort = next_process(tickets_sum);
+
+	for (p = FIRST_PROC; p <= LAST_PROC; p++) 
 	{
 		/* Skip non-ready process. */
 		if (p->state != PROC_READY)
 			continue;
-		
-		/*
-		 * Process with higher
-		 * waiting time found.
-		 */
-		if (p->counter > next->counter)
+
+
+		tickets_sum += p->tickets;
+		if (tickets_sum > ticket_sort)
 		{
-			next->counter++;
 			next = p;
 		}
-			
-		/*
-		 * Increment waiting
-		 * time of process.
-		 */
-		else
-			p->counter++;
 	}
 	
 	/* Switch to next process. */

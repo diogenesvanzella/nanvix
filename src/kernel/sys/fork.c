@@ -150,6 +150,33 @@ found:
 	proc->cutime = 0;
 	proc->cktime = 0;
 	proc->priority = curr_proc->priority;
+	switch(proc->priority)
+	{
+	   	case PRIO_IO:
+	      proc->tickets = 80;
+	      break;
+	   case PRIO_BUFFER:
+	      proc->tickets = 70;
+	      break;
+		case PRIO_INODE:
+	      proc->tickets = 60;
+	      break;
+	    case PRIO_SUPERBLOCK:
+	      proc->tickets = 50;
+	      break;
+		case PRIO_REGION:
+	      proc->tickets = 40;
+	      break;
+		case PRIO_TTY:
+	      proc->tickets = 30;
+	      break;
+	    case PRIO_SIG:
+	      proc->tickets = 20;
+	      break;
+	    case PRIO_USER:
+	      proc->tickets = 10;
+	      break;
+	}
 	proc->nice = curr_proc->nice;
 	proc->alarm = 0;
 	proc->next = NULL;
