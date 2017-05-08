@@ -30,8 +30,8 @@ int rand(void) {
 	return (unsigned int) (seed/65536) % 32768;
 }
 
-int next_process(int total_ticket){
-	return rand()*total_ticket/32768;
+int next_process(int total_tickets){
+	return rand()*total_tickets/32768;
 }
 
 /**
@@ -76,7 +76,7 @@ PUBLIC void yield(void)
 {
 	struct process *p;    /* Working process.     */
 	struct process *next; /* Next process to run. */
-	int tickets_sum = 0; /* Number of tickets of all process. */
+	int total_tickets = 0; /* Number of tickets of all process. */
 
 	/* Re-schedule process for execution. */
 	if (curr_proc->state == PROC_RUNNING)
@@ -97,14 +97,14 @@ PUBLIC void yield(void)
 			p->alarm = 0, sndsig(p, SIGALRM);
 
 		/* count tickets of all process */
-		tickets_sum += p->tickets;
+		total_tickets += p->tickets;
 	}
 
 	/* Choose a process to run next. */
 	next = IDLE;
 	/* get a random number between zero-tickets_sum. */
-	int ticket_sort = next_process(tickets_sum);
-
+	int ticket_sort = next_process(total_tickets);
+	int tickets_sum = 0; /* Sum of tickets. */
 	for (p = FIRST_PROC; p <= LAST_PROC; p++) 
 	{
 		/* Skip non-ready process. */
