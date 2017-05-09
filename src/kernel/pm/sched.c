@@ -24,9 +24,8 @@
 #include <nanvix/pm.h>
 #include <signal.h>
 
-unsigned long int seed = 1;
 int rand(void) {
-	seed = seed * 1103515245 + 12345;
+	unsigned long int seed = CURRENT_TIME * 1103515245 + 12345;
 	return (unsigned int) (seed/65536) % 32768;
 }
 
@@ -116,6 +115,7 @@ PUBLIC void yield(void)
 		if (tickets_sum > ticket_sort)
 		{
 			next = p;
+			break;
 		}
 	}
 	
