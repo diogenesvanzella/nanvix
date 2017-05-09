@@ -150,6 +150,8 @@ found:
 	proc->cutime = 0;
 	proc->cktime = 0;
 	proc->priority = curr_proc->priority;
+	proc->tickets = ((proc->priority*-1) + 60); /* seta numero de tickets usando a prioridade+60 */
+	/* 
 	switch(proc->priority)
 	{
 	   	case PRIO_IO:
@@ -176,7 +178,7 @@ found:
 	    case PRIO_USER:
 	      proc->tickets = 10;
 	      break;
-	}
+	} */
 	proc->nice = curr_proc->nice;
 	proc->alarm = 0;
 	proc->next = NULL;
