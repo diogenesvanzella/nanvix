@@ -84,27 +84,33 @@ PUBLIC void yield(void)
 	/* Remember this process. */
 	last_proc = curr_proc;
 
+	/**
+	 * add compensation tickets for processes that are loosing processor 
+	 * and do not use their entire quantum
+	 */
+	curr_proc->compensation = curr_proc->tickets / (curr_proc->counter / PROC_QUANTUM);
+
 	/* Check alarm. */
-	for (p = FIRST_PROC; p <= LAST_PROC; p++)
-	{
+	for (p = FIRST_PROC; p <= LAST_PROC; p++) {
+
+		/* count tickets of all ready process */
+		if (p->state == PROC_READY) {
+			total_tickets += (p->tickets + p->compensation);
+		}
+
 		/* Skip invalid processes. */
 		if (!IS_VALID(p))
 			continue;
 		
 		/* Alarm has expired. */
-		if ((p->alarm) && (p->alarm < ticks)) {
+		if ((p->alarm) && (p->alarm < ticks))
 			p->alarm = 0, sndsig(p, SIGALRM);
-			p->compensation = proc->tickets / (p->counter / PROC_QUANTUM);
-		}
-
-		/* count tickets of all process */
-		total_tickets += (p->tickets + p->compensation);
 	}
 
 	/* Choose a process to run next. */
 	next = IDLE;
-	/* get a random number between zero-tickets_sum. */
-	int ticket_sort = next_process(total_tickets);
+	/* get a random number between [1...tickets_sum]. */
+	int sorted_ticket = next_process(total_tickets);
 	int tickets_sum = 0; /* Sum of tickets. */
 	for (p = FIRST_PROC; p <= LAST_PROC; p++) 
 	{
@@ -113,8 +119,10 @@ PUBLIC void yield(void)
 			continue;
 
 		tickets_sum += p->tickets;
-		if (tickets_sum > ticket_sort)
-		{
+		/**
+		 * 
+		 */
+		if (tickets_sum > sorted_ticket) {
 			next = p;
 			break;
 		}
@@ -124,6 +132,7 @@ PUBLIC void yield(void)
 	next->priority = PRIO_USER;
 	next->state = PROC_RUNNING;
 	next->counter = PROC_QUANTUM;
+	next->tickets = (next->priority*(-1) + 60);
 	next->compensation = 0;
 	switch_to(next);
 }
