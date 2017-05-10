@@ -92,8 +92,10 @@ PUBLIC void yield(void)
 			continue;
 		
 		/* Alarm has expired. */
-		if ((p->alarm) && (p->alarm < ticks))
+		if ((p->alarm) && (p->alarm < ticks)) {
 			p->alarm = 0, sndsig(p, SIGALRM);
+			p->compensation += p->counter;
+		}
 
 		/* count tickets of all process */
 		total_tickets += p->tickets;
@@ -109,7 +111,6 @@ PUBLIC void yield(void)
 		/* Skip non-ready process. */
 		if (p->state != PROC_READY)
 			continue;
-
 
 		tickets_sum += p->tickets;
 		if (tickets_sum > ticket_sort)

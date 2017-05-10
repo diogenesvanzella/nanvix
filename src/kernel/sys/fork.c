@@ -78,7 +78,7 @@ found:
 	 * on the same indexes as in the father process.
 	 */
 	for (i = 0; i < NR_PREGIONS; i++)
-	{	
+	{
 		preg = &curr_proc->pregs[i];
 		
 		/* Process region not in use. */
@@ -150,35 +150,9 @@ found:
 	proc->cutime = 0;
 	proc->cktime = 0;
 	proc->priority = curr_proc->priority;
-	proc->tickets = ((proc->priority*-1) + 60); /* seta numero de tickets usando a prioridade+60 */
-	/* 
-	switch(proc->priority)
-	{
-	   	case PRIO_IO:
-	      proc->tickets = 80;
-	      break;
-	   case PRIO_BUFFER:
-	      proc->tickets = 70;
-	      break;
-		case PRIO_INODE:
-	      proc->tickets = 60;
-	      break;
-	    case PRIO_SUPERBLOCK:
-	      proc->tickets = 50;
-	      break;
-		case PRIO_REGION:
-	      proc->tickets = 40;
-	      break;
-		case PRIO_TTY:
-	      proc->tickets = 30;
-	      break;
-	    case PRIO_SIG:
-	      proc->tickets = 20;
-	      break;
-	    case PRIO_USER:
-	      proc->tickets = 10;
-	      break;
-	} */
+	/* seta numero de tickets usando a prioridade*(-1)+60 */
+	proc->tickets = (proc->priority*(-1) + 60);
+	proc->compensation = 0;
 	proc->nice = curr_proc->nice;
 	proc->alarm = 0;
 	proc->next = NULL;

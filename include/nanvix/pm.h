@@ -200,7 +200,8 @@
     	unsigned state;          /**< Current state.          */
     	int counter;             /**< Remaining quantum.      */
     	int priority;            /**< Process priorities.     */
-    	int tickets;             /**< Process tickets.        */ 
+    	int tickets;             /**< Process tickets.        */
+    	int compensation;        /**< Tickets compensation.   */ 
     	int nice;                /**< Nice for scheduling.    */
     	unsigned alarm;          /**< Alarm.                  */
 		struct process *next;    /**< Next process in a list. */
