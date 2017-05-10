@@ -94,11 +94,11 @@ PUBLIC void yield(void)
 		/* Alarm has expired. */
 		if ((p->alarm) && (p->alarm < ticks)) {
 			p->alarm = 0, sndsig(p, SIGALRM);
-			p->compensation += p->counter;
+			p->compensation = proc->tickets / (p->counter / PROC_QUANTUM);
 		}
 
 		/* count tickets of all process */
-		total_tickets += p->tickets;
+		total_tickets += (p->tickets + p->compensation);
 	}
 
 	/* Choose a process to run next. */
@@ -124,5 +124,6 @@ PUBLIC void yield(void)
 	next->priority = PRIO_USER;
 	next->state = PROC_RUNNING;
 	next->counter = PROC_QUANTUM;
+	next->compensation = 0;
 	switch_to(next);
 }
