@@ -23,6 +23,7 @@
 #include <nanvix/hal.h>
 #include <nanvix/pm.h>
 #include <signal.h>
+#include <nanvix/klib.h>
 
 int rand(void) {
 	unsigned long int seed = CURRENT_TIME * 1103515245 + 12345;
@@ -73,9 +74,24 @@ PUBLIC void resume(struct process *proc)
  */
 PUBLIC void yield(void)
 {
-	struct process *p;    /* Working process.     */
-	struct process *next; /* Next process to run. */
-	int total_tickets = 0; /* Number of tickets of all process. */
+	struct process *p;    	/* Working process.     */
+	struct process *next; 	/* Next process to run. */
+	int total_tickets = 0; 	/* Number of tickets of all process. */
+	float fraction = 0;			/* Numero da fração para compensação de tickets */
+	int contador = 0;
+	contador = curr_proc->counter;
+	fraction = (contador / 50);
+
+	/**
+	 * add compensation tickets for processes that are loosing processor 
+	 * and do not use their entire quantum
+	 */
+	if (contador > 0){
+		//kprintf("counter: %d", contador);
+		//kprintf("fraction: %d", fraction1);
+		//kprintf("PROC_QUANTUM: %d", PROC_QUANTUM);
+		curr_proc->compensation = curr_proc->tickets / fraction;
+	}
 
 	/* Re-schedule process for execution. */
 	if (curr_proc->state == PROC_RUNNING)
@@ -83,12 +99,6 @@ PUBLIC void yield(void)
 
 	/* Remember this process. */
 	last_proc = curr_proc;
-
-	/**
-	 * add compensation tickets for processes that are loosing processor 
-	 * and do not use their entire quantum
-	 */
-	curr_proc->compensation = curr_proc->tickets / (curr_proc->counter / PROC_QUANTUM);
 
 	/* Check alarm. */
 	for (p = FIRST_PROC; p <= LAST_PROC; p++) {
@@ -127,7 +137,8 @@ PUBLIC void yield(void)
 			break;
 		}
 	}
-	
+
+	//curr_proc->compensation = 60;
 	/* Switch to next process. */
 	next->priority = PRIO_USER;
 	next->state = PROC_RUNNING;
