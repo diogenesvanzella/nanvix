@@ -78,20 +78,20 @@ PUBLIC void yield(void)
 	struct process *next; 	/* Next process to run. */
 	int total_tickets = 0; 	/* Number of tickets of all process. */
 	float fraction = 0;			/* Numero da fração para compensação de tickets */
-	int contador = 0;
-	contador = curr_proc->counter;
+	int contador = curr_proc->counter;
 	fraction = (contador / 50);
+
+	/* 
+	if(contador == 0){
+		kprintf("cont %d", contador);
+		__asm__("xchg %bx, %bx");
+	} */
 
 	/**
 	 * add compensation tickets for processes that are loosing processor 
 	 * and do not use their entire quantum
 	 */
-	if (contador > 0){
-		//kprintf("counter: %d", contador);
-		//kprintf("fraction: %d", fraction1);
-		//kprintf("PROC_QUANTUM: %d", PROC_QUANTUM);
-		curr_proc->compensation = curr_proc->tickets / fraction;
-	}
+	curr_proc->compensation = curr_proc->tickets / fraction;		
 
 	/* Re-schedule process for execution. */
 	if (curr_proc->state == PROC_RUNNING)
@@ -138,7 +138,6 @@ PUBLIC void yield(void)
 		}
 	}
 
-	//curr_proc->compensation = 60;
 	/* Switch to next process. */
 	next->priority = PRIO_USER;
 	next->state = PROC_RUNNING;
