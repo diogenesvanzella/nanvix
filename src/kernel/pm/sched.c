@@ -23,18 +23,16 @@
 #include <nanvix/hal.h>
 #include <nanvix/pm.h>
 #include <signal.h>
-#include <nanvix/klib.h>
 
 /**
  * @brief Schedules a process to execution.
- *
+ * 
  * @param proc Process to be scheduled.
  */
 PUBLIC void sched(struct process *proc)
 {
-    proc->state = PROC_READY;
-    proc->counter = 0;
-    proc->priority = PRIO_SIG;
+	proc->state = PROC_READY;
+	proc->counter = 0;
 }
 
 /**
@@ -42,23 +40,23 @@ PUBLIC void sched(struct process *proc)
  */
 PUBLIC void stop(void)
 {
-    curr_proc->state = PROC_STOPPED;
-    sndsig(curr_proc->father, SIGCHLD);
-    yield();
+	curr_proc->state = PROC_STOPPED;
+	sndsig(curr_proc->father, SIGCHLD);
+	yield();
 }
 
 /**
  * @brief Resumes a process.
- *
+ * 
  * @param proc Process to be resumed.
- *
+ * 
  * @note The process must stopped to be resumed.
  */
 PUBLIC void resume(struct process *proc)
-{
-    /* Resume only if process has stopped. */
-    if (proc->state == PROC_STOPPED)
-        sched(proc);
+{	
+	/* Resume only if process has stopped. */
+	if (proc->state == PROC_STOPPED)
+		sched(proc);
 }
 
 /**
@@ -66,69 +64,50 @@ PUBLIC void resume(struct process *proc)
  */
 PUBLIC void yield(void)
 {
-    struct process *p;    /* Working process.     */
-    struct process *next; /* Next process to run. */
+	struct process *p;    /* Working process.     */
+	struct process *next; /* Next process to run. */
 
-    /* Re-schedule process for execution. */
-    if (curr_proc->state == PROC_RUNNING)
-        sched(curr_proc);
+	/* Re-schedule process for execution. */
+	if (curr_proc->state == PROC_RUNNING)
+		sched(curr_proc);
 
-    /* Remember this process. */
-    last_proc = curr_proc;
+	/* Remember this process. */
+	last_proc = curr_proc;
 
-    /* Check alarm. */
-    for (p = FIRST_PROC; p <= LAST_PROC; p++)
-    {
-        /* Skip invalid processes. */
-        if (!IS_VALID(p))
-            continue;
+	/* Check alarm. */
+	for (p = FIRST_PROC; p <= LAST_PROC; p++)
+	{
+		/* Skip invalid processes. */
+		if (!IS_VALID(p))
+			continue;
+		
+		/* Alarm has expired. */
+		if ((p->alarm) && (p->alarm < ticks))
+			p->alarm = 0, sndsig(p, SIGALRM);
+	}
 
-        /* Alarm has expired. */
-        if ((p->alarm) && (p->alarm < ticks))
-            p->alarm = 0, sndsig(p, SIGALRM);
-    }
-
-    /* Choose a process to run next. */
-    next = IDLE;
-    for (p = FIRST_PROC; p <= LAST_PROC; p++)
-    {
-        /* Skip non-ready process. */
-        if (p->state != PROC_READY) {
-            continue;
-        }
-
-        /*
-         * Process with higher
-         * waiting time found.
-         */
-        if(next->priority >= p->priority) {
-
-            if (next->priority == p->priority) {
-                next = next->counter >= p->counter ? next : p;
-                p->priority = p->priority-20;
-            } else {
-                next->priority = (next->priority-20);
+	/* Choose a process to run next. */
+	next = IDLE;
+	for (p = FIRST_PROC; p <= LAST_PROC; p++)
+	{
+		/* Skip non-ready process. */
+		if (p->state != PROC_READY)
+			continue;
+		
+		if(next->priority >= p->priority){
+            if(p->counter > next->counter){
+                next->counter++;
                 next = p;
             }
+        } else {
+            p->counter++;
         }
-            /*
-             * Increment waiting
-             * time of process.
-             */
-        else {
-            //p->counter++;
-            // Se a prioridade for -100 ele já tem a prioridade mais alta, nao preciso decrementar
-            if(p->priority > -100) {
-                p->priority = (p->priority-20);
-            }
-
-        }
-        //kprintf(p->priority);
-    }
-
-    /* Switch to next process. */
-    next->priority = PRIO_USER;
-    next->state = PROC_RUNNING;
-    next->counter = PROC_QUANTUM;
-    switch_to(next);
+	}
+	
+    
+	/* Switch to next process. */
+	next->priority = PRIO_USER;
+	next->state = PROC_RUNNING;
+	next->counter = PROC_QUANTUM;
+	switch_to(next);
 }
