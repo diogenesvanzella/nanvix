@@ -110,7 +110,6 @@ PUBLIC void yield(void)
                 next->priority = (next->priority-20);
                 next = p;
             }
-
         }
             /*
              * Increment waiting
