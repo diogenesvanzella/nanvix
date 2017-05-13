@@ -94,8 +94,16 @@ PUBLIC void yield(void)
 		if (p->state != PROC_READY)
 			continue;
 		
+		/* Contains priority sum of process next. */
 		int next_priority_sum = (next->priority + next->nice - next->counter);
+
+		/* Contains priority sum of process p. */
 		int p_priority_sum = (p->priority + p->nice - p->counter);
+
+		/* Compare priority sums of the processes.
+		 * Process that contains the bigger negative number may
+		 * win the processor.
+		 */
 		if(next_priority_sum >= p_priority_sum){
 			next = p;
         } else {
