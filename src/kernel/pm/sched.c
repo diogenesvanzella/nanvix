@@ -94,11 +94,10 @@ PUBLIC void yield(void)
 		if (p->state != PROC_READY)
 			continue;
 		
-		if(next->priority >= p->priority){
-            if(p->counter > next->counter){
-                next->counter++;
-                next = p;
-            }
+		int next_sum = (next->priority + next->nice - next->counter);
+		int p_sum = (p->priority + p->nice - p->counter);
+		if(next_sum >= p_sum){
+			next = p;
         } else {
             p->counter++;
         }
