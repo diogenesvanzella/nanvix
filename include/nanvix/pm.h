@@ -75,6 +75,7 @@
 	/**@{*/
 	#define PROC_QUANTUM 50 /**< Quantum.                  */
 	#define NR_PREGIONS   4 /**< Number of memory regions. */
+	#define NORMALIZATION_VALUE 80 /**< Quantum.                  */
 	/**@}*/
 	
 	/**

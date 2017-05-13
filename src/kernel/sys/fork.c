@@ -150,10 +150,10 @@ found:
 	proc->cutime = 0;
 	proc->cktime = 0;
 	proc->priority = curr_proc->priority;
-	/* seta numero de tickets usando a prioridade*(-1)+60 */
-	proc->tickets = (proc->priority*(-1) + 60);
-	proc->compensation = 0;
 	proc->nice = curr_proc->nice;
+	/* Calculate tickets with normalization function */
+	proc->tickets = (proc->priority*(-1) + NORMALIZATION_VALUE - proc->nice);
+	proc->compensation = 0;
 	proc->alarm = 0;
 	proc->next = NULL;
 	proc->chain = NULL;

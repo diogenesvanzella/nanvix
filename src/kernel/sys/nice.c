@@ -39,6 +39,9 @@ PUBLIC int sys_nice(int incr)
 	else if (curr_proc->nice >= 2*NZERO)
 		curr_proc->nice = 2*NZERO - 1;
 	
+	/* Must refresh total tickets of process when nice is update*/
+	curr_proc->tickets = (curr_proc->priority*(-1) + NORMALIZATION_VALUE - curr_proc->nice);
+	
 	return (curr_proc->nice);
 }
 

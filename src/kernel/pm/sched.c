@@ -70,6 +70,17 @@ PUBLIC void resume(struct process *proc)
 }
 
 /**
+ * Add compensation tickets for processes that are loosing processor 
+ * and do not use their entire quantum
+ */
+PUBLIC void add_compensation() {
+	if (curr_proc->counter > 0) {
+		float fraction = (curr_proc->counter / PROC_QUANTUM);
+		curr_proc->compensation = curr_proc->tickets / fraction;
+	}
+}
+
+/**
  * @brief Yields the processor.
  */
 PUBLIC void yield(void)
@@ -77,21 +88,9 @@ PUBLIC void yield(void)
 	struct process *p;    	/* Working process.     */
 	struct process *next; 	/* Next process to run. */
 	int total_tickets = 0; 	/* Number of tickets of all process. */
-	float fraction = 0;			/* Numero da fração para compensação de tickets */
-	int contador = curr_proc->counter;
-	fraction = (contador / 50);
-
-	/* 
-	if(contador == 0){
-		kprintf("cont %d", contador);
-		__asm__("xchg %bx, %bx");
-	} */
-
-	/**
-	 * add compensation tickets for processes that are loosing processor 
-	 * and do not use their entire quantum
-	 */
-	curr_proc->compensation = curr_proc->tickets / fraction;		
+	
+	/* Current process must be compensate. */
+	add_compensation();
 
 	/* Re-schedule process for execution. */
 	if (curr_proc->state == PROC_RUNNING)
@@ -103,7 +102,7 @@ PUBLIC void yield(void)
 	/* Check alarm. */
 	for (p = FIRST_PROC; p <= LAST_PROC; p++) {
 
-		/* count tickets of all ready process */
+		/* count tickets of all ready process. */
 		if (p->state == PROC_READY) {
 			total_tickets += (p->tickets + p->compensation);
 		}
@@ -122,6 +121,9 @@ PUBLIC void yield(void)
 	/* get a random number between [1...tickets_sum]. */
 	int sorted_ticket = next_process(total_tickets);
 	int tickets_sum = 0; /* Sum of tickets. */
+	/**
+	 * Choose the process that contains the winner ticket
+	 */
 	for (p = FIRST_PROC; p <= LAST_PROC; p++) 
 	{
 		/* Skip non-ready process. */
@@ -129,9 +131,6 @@ PUBLIC void yield(void)
 			continue;
 
 		tickets_sum += p->tickets;
-		/**
-		 * 
-		 */
 		if (tickets_sum > sorted_ticket) {
 			next = p;
 			break;
@@ -142,7 +141,7 @@ PUBLIC void yield(void)
 	next->priority = PRIO_USER;
 	next->state = PROC_RUNNING;
 	next->counter = PROC_QUANTUM;
-	next->tickets = (next->priority*(-1) + 60);
+	next->tickets = (next->priority*(-1) + NORMALIZATION_VALUE - next->nice);
 	next->compensation = 0;
 	switch_to(next);
 }
