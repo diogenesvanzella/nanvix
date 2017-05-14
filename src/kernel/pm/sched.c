@@ -88,13 +88,13 @@ PUBLIC void yield(void)
 	struct process *p;    	/* Working process.     */
 	struct process *next; 	/* Next process to run. */
 	int total_tickets = 0; 	/* Number of tickets of all process. */
-	
-	/* Current process must be compensate. */
-	add_compensation();
 
 	/* Re-schedule process for execution. */
-	if (curr_proc->state == PROC_RUNNING)
+	if (curr_proc->state == PROC_RUNNING) {
+		/* Current process must be compensate. */
+		add_compensation();
 		sched(curr_proc);
+	}
 
 	/* Remember this process. */
 	last_proc = curr_proc;
@@ -130,7 +130,7 @@ PUBLIC void yield(void)
 		if (p->state != PROC_READY)
 			continue;
 
-		tickets_sum += p->tickets;
+		tickets_sum += (p->tickets + p->compensation);
 		if (tickets_sum > sorted_ticket) {
 			next = p;
 			break;
