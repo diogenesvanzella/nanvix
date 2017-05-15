@@ -31,7 +31,7 @@ int rand(void) {
 }
 
 int next_process(int total_tickets){
-	return rand()*total_tickets/32768;
+	return (rand()*total_tickets/32768)+1;
 }
 
 /**
@@ -74,9 +74,12 @@ PUBLIC void resume(struct process *proc)
  * and do not use their entire quantum
  */
 PUBLIC void add_compensation() {
-	if (curr_proc->counter > 0) {
-		float fraction = (curr_proc->counter / PROC_QUANTUM);
-		curr_proc->compensation = curr_proc->tickets / fraction;
+	if (curr_proc->counter > 0 && curr_proc->counter != PROC_QUANTUM) {
+		float used_quantum = PROC_QUANTUM - curr_proc->counter;
+		float fraction = used_quantum / PROC_QUANTUM;
+		float compensation = curr_proc->tickets / fraction;
+		int final = (unsigned int) compensation - curr_proc->tickets;
+		curr_proc->compensation = final;
 	}
 }
 
