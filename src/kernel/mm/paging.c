@@ -290,6 +290,51 @@ PRIVATE struct
  * @returns Upon success, the number of the frame is returned. Upon failure, a
  *          negative number is returned instead.
  */
+/*PRIVATE int allocf(void){
+	
+	int i;
+	int relogio = -1;
+	struct pte *pg;
+	addr_t addr_aux;
+
+	while(relogio == -1) {
+		for(i = 0; i < NR_FRAMES; i++) {
+			if(frames[i].count == 0)
+				goto found;
+
+			if(frames[i].owner == curr_proc->pid) {
+				
+				if(frames[i].count > 1)
+					continue;
+
+				addr_aux = frames[i].addr;
+				addr_aux &= PAGE_MASK;
+				pg = getpte(curr_proc, addr_aux);
+
+				if(pg->user == 0) {
+					relogio = i;
+					pg->user = 1;
+					goto found;
+				} else {
+					pg->user = 0;
+				}
+			}
+		}
+	}
+
+	if (relogio < 0)
+		return (-1);
+
+	if (swap_out(curr_proc, frames[i = relogio].addr))
+		return (-1);
+
+found:		
+
+	frames[i].age = ticks;
+	frames[i].count = 1;
+	
+	return (i);
+}*/
 PRIVATE int allocf(void)
 {
 	int i;      /* Loop index.  */
