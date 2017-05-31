@@ -29,6 +29,8 @@
 #include <signal.h>
 #include "mm.h"
 
+//variavel usada para fazer a iteração no array de frames.
+int ITERADOR_FRAMES = 0;
 /*
  * Swapping area too small?
  */
@@ -290,7 +292,7 @@ PRIVATE struct
  * @returns Upon success, the number of the frame is returned. Upon failure, a
  *          negative number is returned instead.
  */
-/*PRIVATE int allocf(void){
+PRIVATE int allocf(void){
 	
 	int i;
 	int relogio = -1;
@@ -298,7 +300,7 @@ PRIVATE struct
 	addr_t addr_aux;
 
 	while(relogio == -1) {
-		for(i = 0; i < NR_FRAMES; i++) {
+		for(i = ITERADOR_FRAMES; i < NR_FRAMES; i++) {
 			if(frames[i].count == 0)
 				goto found;
 
@@ -313,13 +315,20 @@ PRIVATE struct
 
 				if(pg->user == 0) {
 					relogio = i;
-					pg->user = 1;
+					// Seta o bit R para 1 na linha 395 (aloca page) e 467 (lê page)
+					//pg->user = 1;
 					goto found;
 				} else {
 					pg->user = 0;
 				}
 			}
 		}
+		/**
+		* Se não for alocado um frame, e o "ponteiro" chegar ao final do array, retorna o seu valor a 0 e recomeça
+		* a busca por um frame apto para troca
+		*/
+		if(i == NR_FRAMES)
+			ITERADOR_FRAMES = 0;
 	}
 
 	if (relogio < 0)
@@ -332,53 +341,11 @@ found:
 
 	frames[i].age = ticks;
 	frames[i].count = 1;
-	
-	return (i);
-}*/
-PRIVATE int allocf(void)
-{
-	int i;      /* Loop index.  */
-	int oldest; /* Oldest page. */
-	
-	#define OLDEST(x, y) (frames[x].age < frames[y].age)
-	
-	/* Search for a free frame. */
-	oldest = -1;
-	for (i = 0; i < NR_FRAMES; i++)
-	{
-		/* Found it. */
-		if (frames[i].count == 0)
-			goto found;
+	//avança para pŕoximo frame;
+	ITERADOR_FRAMES = i + 1;
 		
-		/* Local page replacement policy. */
-		if (frames[i].owner == curr_proc->pid)
-		{
-			/* Skip shared pages. */
-			if (frames[i].count > 1)
-				continue;
-			
-			/* Oldest page found. */
-			if ((oldest < 0) || (OLDEST(i, oldest)))
-				oldest = i;
-		}
-	}
-	
-	/* No frame left. */
-	if (oldest < 0)
-		return (-1);
-	
-	/* Swap page out. */
-	if (swap_out(curr_proc, frames[i = oldest].addr))
-		return (-1);
-	
-found:		
-
-	frames[i].age = ticks;
-	frames[i].count = 1;
-	
 	return (i);
 }
-
 /**
  * @brief Copies a page.
  * 
