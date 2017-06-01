@@ -29,8 +29,7 @@
 #include <signal.h>
 #include "mm.h"
 
-//variavel usada para fazer a iteração no array de frames.
-int ITERADOR_FRAMES = 0;
+
 /*
  * Swapping area too small?
  */
@@ -275,6 +274,9 @@ PUBLIC void putkpg(void *kpg)
 /* Number of page frames. */
 #define NR_FRAMES (UMEM_SIZE/PAGE_SIZE)
 
+//variavel usada para fazer a iteração no array de frames.
+int ITERADOR_FRAMES = 0;
+
 /**
  * @brief Page frames.
  */
@@ -306,6 +308,7 @@ PRIVATE int allocf(void){
 
 			if(frames[i].owner == curr_proc->pid) {
 				
+				// e se todas as páginas estiverem sendo referenciadas?
 				if(frames[i].count > 1)
 					continue;
 
@@ -313,13 +316,13 @@ PRIVATE int allocf(void){
 				addr_aux &= PAGE_MASK;
 				pg = getpte(curr_proc, addr_aux);
 
-				if(pg->user == 0) {
+				if(pg->accessed == 0) {
 					relogio = i;
 					// Seta o bit R para 1 na linha 395 (aloca page) e 467 (lê page)
-					//pg->user = 1;
-					goto found;
+					//pg->accessed = 1;
+					goto loop;
 				} else {
-					pg->user = 0;
+					pg->accessed = 0;
 				}
 			}
 		}
@@ -327,9 +330,11 @@ PRIVATE int allocf(void){
 		* Se não for alocado um frame, e o "ponteiro" chegar ao final do array, retorna o seu valor a 0 e recomeça
 		* a busca por um frame apto para troca
 		*/
-		if(i == NR_FRAMES)
+		if(i >= NR_FRAMES)
 			ITERADOR_FRAMES = 0;
 	}
+
+loop:
 
 	if (relogio < 0)
 		return (-1);
@@ -343,7 +348,7 @@ found:
 	frames[i].count = 1;
 	//avança para pŕoximo frame;
 	ITERADOR_FRAMES = i + 1;
-		
+
 	return (i);
 }
 /**
