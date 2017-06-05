@@ -274,9 +274,6 @@ PUBLIC void putkpg(void *kpg)
 /* Number of page frames. */
 #define NR_FRAMES (UMEM_SIZE/PAGE_SIZE)
 
-//variavel usada para fazer a iteração no array de frames.
-int ITERADOR_FRAMES = 0;
-
 /**
  * @brief Page frames.
  */
@@ -297,57 +294,71 @@ PRIVATE struct
 PRIVATE int allocf(void){
 	
 	int i;
-	int relogio = -1;
+	int nru = -1;
+
+	int classe_1 = -1;
+	int classe_2 = -1;
+	int classe_3 = -1;
+
 	struct pte *pg;
 	addr_t addr_aux;
 
-	while(relogio == -1) {
-		for(i = ITERADOR_FRAMES; i < NR_FRAMES; i++) {
-			if(frames[i].count == 0)
-				goto found;
 
-			if(frames[i].owner == curr_proc->pid) {
-				
-				// e se todas as páginas estiverem sendo referenciadas?
-				if(frames[i].count > 1)
-					continue;
+	for(i = 0; i < NR_FRAMES; i++) {
+		
+		if(frames[i].count == 0)
+			goto found;
 
-				addr_aux = frames[i].addr;
-				addr_aux &= PAGE_MASK;
-				pg = getpte(curr_proc, addr_aux);
+		if(frames[i].owner == curr_proc->pid) {
+			
+			// e se todas as páginas estiverem sendo referenciadas?
+			if(frames[i].count > 1)
+				continue;
 
-				if(pg->accessed == 0) {
-					relogio = i;
-					// Seta o bit R para 1 na linha 395 (aloca page) e 467 (lê page)
-					//pg->accessed = 1;
-					goto loop;
-				} else {
-					pg->accessed = 0;
-				}
+			addr_aux = frames[i].addr;
+			addr_aux &= PAGE_MASK;
+			pg = getpte(curr_proc, addr_aux);
+
+			if(pg->accessed == 0 && pg->writable == 0){
+				nru = i;
+				goto loop;
+			} else if(pg->accessed == 0 && pg->writable == 1) {
+				classe_1 = i;
+				continue;
+			} else if(pg->accessed == 1 && pg->writable == 0) {
+				classe_2 = i;
+				continue;
+			} else if(pg->accessed == 1 && pg->writable == 1) {
+				classe_3 = i;
 			}
 		}
-		/**
-		* Se não for alocado um frame, e o "ponteiro" chegar ao final do array, retorna o seu valor a 0 e recomeça
-		* a busca por um frame apto para troca
-		*/
-		if(i >= NR_FRAMES)
-			ITERADOR_FRAMES = 0;
+	}
+
+	if(iterador_c1 >= 0) {
+		nru = classe_1;
+		goto loop;
+
+	} else if(iterador_c2 >= 0) {
+		nru = classe_2;
+		goto loop;
+
+	} else if(iterador_c3 >= 0){
+		nru = classe_3;
+		goto loop;
 	}
 
 loop:
 
-	if (relogio < 0)
+	if (nru < 0)
 		return (-1);
 
-	if (swap_out(curr_proc, frames[i = relogio].addr))
+	if (swap_out(curr_proc, frames[i = nru].addr))
 		return (-1);
 
 found:		
 
 	frames[i].age = ticks;
 	frames[i].count = 1;
-	//avança para pŕoximo frame;
-	ITERADOR_FRAMES = i + 1;
 
 	return (i);
 }
