@@ -273,9 +273,6 @@ PUBLIC void putkpg(void *kpg)
 /* Number of page frames. */
 #define NR_FRAMES (UMEM_SIZE/PAGE_SIZE)
 
-/* Iterate over array of the frames */
-int ITERADOR_FRAMES = 0;
-
 /**
  * @brief Page frames.
  */
@@ -295,7 +292,7 @@ PUBLIC void bitHandler()
 	int i; // iterador do loop
 	addr_t addr_aux;
 
-	for(i = 0; i < ITERADOR_FRAMES; i++) {
+	for(i = 0; i < NR_FRAMES; i++) {
 
 		if(frames[i].count == 0)
 			continue;
@@ -361,11 +358,11 @@ PRIVATE int allocf(void)
 				oldest = i;
 		}
 	}
-	
+
 	frames[oldest].aging = 0;
 	
 	/* Swap page out. */
-	if (swap_out(curr_proc, frames[oldest].addr))        // i = oldest ele passa a apontar para o i
+	if (swap_out(curr_proc, frames[i = oldest].addr))        // i = oldest ele passa a apontar para o i
 		return (-1);
 	
 found:		
