@@ -54,6 +54,9 @@
 	/* User memory size. */
 	#define UMEM_SIZE (MEMORY_SIZE - KMEM_SIZE - KPOOL_SIZE)
 
+	/* Add bit in the left. */
+	#define ADD_BIT_ESQUERDA 128 // o bit a esquerda sempre vale 128
+
 #ifndef _ASM_FILE_
 	
 	/* Forward definitions. */
@@ -67,6 +70,7 @@
 	EXTERN void putkpg(void *);
 	EXTERN void mm_init(void);
 	EXTERN void *getkpg(int);
+	EXTERN void bitHandler(void); // definida a funcao para manipular bits a cada interrupção
 
 #endif /* _ASM_FILE_ */
 	

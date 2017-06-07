@@ -273,6 +273,9 @@ PUBLIC void putkpg(void *kpg)
 /* Number of page frames. */
 #define NR_FRAMES (UMEM_SIZE/PAGE_SIZE)
 
+/* Iterate over array of the frames */
+int ITERADOR_FRAMES = 0;
+
 /**
  * @brief Page frames.
  */
@@ -280,9 +283,50 @@ PRIVATE struct
 {
 	unsigned count; /**< Reference count.     */
 	unsigned age;   /**< Age.                 */
+	unsigned aging; /**< User bit over interrutions */
 	pid_t owner;    /**< Page owner.          */
 	addr_t addr;    /**< Address of the page. */
-} frames[NR_FRAMES] = {{0, 0, 0, 0},  };
+} frames[NR_FRAMES] = {{0, 0, 0, 0, 0},  };
+
+/* Method called in file clock.c (do_clock()) */
+PUBLIC void bitHandler()
+{
+	struct pte *pg;
+	int i; // iterador do loop
+	addr_t addr_aux;
+
+	for(i = 0; i < ITERADOR_FRAMES; i++) {
+
+		if(frames[i].count == 0)
+			continue;
+
+		addr_aux = frames[i].addr;
+		addr_aux &= PAGE_MASK;
+		pg = getpte(curr_proc, addr_aux);
+
+		if (pg->accessed == 0) { // Se bit R = 0
+
+			int aging_aux = frames[i].aging; 
+
+			// Se o bit R for igual a 0, entao precisamos saber se o aging é 0, caso ele tbm seja
+			// adiciona apenar o 128 ao aging, caso o aging tenha algum valor adicionamos a ele apenas
+			// deslocamento de bits (divide por 2).
+			if(frames[i].aging == 0){
+				frames[i].aging = ADD_BIT_ESQUERDA;
+			} else {
+				frames[i].aging = aging_aux/2;
+			}
+
+		} else { // Se bit R = 1
+
+			// Se o bit for 1, então temos certeza que o aging não é zero.
+			// Assim fazemos a divisão (para deslocar) e depois somamos 128 ao aging.
+			int aging_aux = frames[i].aging;
+			aging_aux = aging_aux/2;
+			frames[i].aging = aging_aux + ADD_BIT_ESQUERDA;
+		}
+	}
+}
 
 /**
  * @brief Allocates a page frame.
@@ -295,7 +339,7 @@ PRIVATE int allocf(void)
 	int i;      /* Loop index.  */
 	int oldest; /* Oldest page. */
 	
-	#define OLDEST(x, y) (frames[x].age < frames[y].age)
+	#define OLDEST(x, y) (frames[x].aging < frames[y].aging)
 	
 	/* Search for a free frame. */
 	oldest = -1;
@@ -318,18 +362,17 @@ PRIVATE int allocf(void)
 		}
 	}
 	
-	/* No frame left. */
-	if (oldest < 0)
-		return (-1);
+	frames[oldest].aging = 0;
 	
 	/* Swap page out. */
-	if (swap_out(curr_proc, frames[i = oldest].addr))
+	if (swap_out(curr_proc, frames[oldest].addr))        // i = oldest ele passa a apontar para o i
 		return (-1);
 	
 found:		
 
 	frames[i].age = ticks;
 	frames[i].count = 1;
+	frames[i].aging = 0;
 	
 	return (i);
 }
