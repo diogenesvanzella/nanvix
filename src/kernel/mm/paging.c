@@ -334,17 +334,12 @@ PRIVATE int allocf(void){
 		}
 	}
 
-	if(iterador_c1 >= 0) {
+	if(classe_1 > 0) {
 		nru = classe_1;
-		goto loop;
-
-	} else if(iterador_c2 >= 0) {
+	} else if(classe_2 > 0) {
 		nru = classe_2;
-		goto loop;
-
-	} else if(iterador_c3 >= 0){
+	} else if(classe_3 > 0){
 		nru = classe_3;
-		goto loop;
 	}
 
 loop:
