@@ -26,10 +26,12 @@
 /* Clock ticks since system initialization. */
 PUBLIC unsigned ticks = 0;
 
-PRIVATE unsigned memory_interrution = 120;
 
 /* Time at system startup. */
 PUBLIC unsigned startup_time = 0;
+
+/* Time to trigger an event to haldler the aging algorithm. */
+PRIVATE unsigned memory_interrution = 1000;
 
 /*
  * Handles a timer interrupt.
@@ -40,7 +42,7 @@ PRIVATE void do_clock()
 
 	if(memory_interrution == 0){
 		bitHandler();
-		memory_interrution = 120;
+		memory_interrution = 1000;
 	} else {
 		memory_interrution--;
 	}
