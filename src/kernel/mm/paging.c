@@ -274,8 +274,8 @@ PUBLIC void putkpg(void *kpg)
 /* Number of page frames. */
 #define NR_FRAMES (UMEM_SIZE/PAGE_SIZE)
 
-//variavel usada para fazer a iteração no array de frames.
-int ITERADOR_FRAMES = 0;
+/* Pointer to shift in the Frame Table*/
+int pointer_clock = 0;
 
 /**
  * @brief Page frames.
@@ -296,61 +296,57 @@ PRIVATE struct
  */
 PRIVATE int allocf(void){
 	
-	int i;
-	int relogio = -1;
-	struct pte *pg;
-	addr_t addr_aux;
+	struct pte *curr_pg; /* current page.    */
+	addr_t addr_aux;     /* Address of page. */
 
-	while(relogio == -1) {
-		for(i = ITERADOR_FRAMES; i < NR_FRAMES; i++) {
-			if(frames[i].count == 0)
+	while(TRUE) {
+		if(frames[pointer_clock].count == 0)
+			goto found;
+
+		if(frames[pointer_clock].owner == curr_proc->pid) {
+			if(frames[pointer_clock].count > 1) {
+				pointer_clock++;
+				/* Reset the pointer to the first indice of frames. */
+				pointer_clock = pointer_clock % NR_FRAMES;
+				continue;
+			}
+
+			/* Get current page from indice pointer. */
+			addr_aux = frames[pointer_clock].addr;
+			addr_aux &= PAGE_MASK;
+			curr_pg = getpte(curr_proc, addr_aux);
+
+			/* Give a second change if the page has recently accessed. */
+			if(curr_pg->accessed == 0) {
+				/* Return an error if swap_out fails. */
+				if (swap_out(curr_proc, frames[pointer_clock].addr))
+					return (-1);
+
+				/* Finally we have the page. */
 				goto found;
-
-			if(frames[i].owner == curr_proc->pid) {
-				
-				// e se todas as páginas estiverem sendo referenciadas?
-				if(frames[i].count > 1)
-					continue;
-
-				addr_aux = frames[i].addr;
-				addr_aux &= PAGE_MASK;
-				pg = getpte(curr_proc, addr_aux);
-
-				if(pg->accessed == 0) {
-					relogio = i;
-					// Seta o bit R para 1 na linha 395 (aloca page) e 467 (lê page)
-					//pg->accessed = 1;
-					goto loop;
-				} else {
-					pg->accessed = 0;
-				}
+			} else {
+				curr_pg->accessed = 0;
 			}
 		}
-		/**
-		* Se não for alocado um frame, e o "ponteiro" chegar ao final do array, retorna o seu valor a 0 e recomeça
-		* a busca por um frame apto para troca
-		*/
-		if(i >= NR_FRAMES)
-			ITERADOR_FRAMES = 0;
+
+		pointer_clock++;
+		/* Reset the pointer to the first indice of frames. */
+		pointer_clock = pointer_clock % NR_FRAMES;
 	}
-
-loop:
-
-	if (relogio < 0)
-		return (-1);
-
-	if (swap_out(curr_proc, frames[i = relogio].addr))
-		return (-1);
 
 found:		
 
-	frames[i].age = ticks;
-	frames[i].count = 1;
-	//avança para pŕoximo frame;
-	ITERADOR_FRAMES = i + 1;
+	frames[pointer_clock].age = ticks;
+	frames[pointer_clock].count = 1;
+	int i = pointer_clock;
+	/* Pointer to next frame. */
+	pointer_clock++;
+	/* Reset the pointer to the first indice of frames. */
+	pointer_clock = pointer_clock % NR_FRAMES;
 
 	return (i);
 }
+
 /**
  * @brief Copies a page.
  * 
