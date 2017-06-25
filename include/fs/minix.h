@@ -29,6 +29,25 @@
 	#include <stdint.h>
 
 /*============================================================================*
+ *                            Buffer Cache Information                        *
+ *============================================================================*/
+
+ 	/**
+	 * @brief Number of blocks to pre-fetch
+	 */
+	#define N_PREFECTHING 4
+
+	/**
+	 * @brief Synchronoulsy read operation
+	 */
+	#define SYNC_READ 1
+
+	/**
+	 * @brief Asynchronoulsy read operation
+	 */
+	#define ASYNC_READ 0
+
+/*============================================================================*
  *                              Block Information                             *
  *============================================================================*/
  

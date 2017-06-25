@@ -190,6 +190,6 @@
 	/*
 	 * Reads a block from a block device.
 	 */
-	EXTERN void bdev_readblk(struct buffer *buf);
+	EXTERN void bdev_readblk(struct buffer *buf, unsigned is_sync);
 	
 #endif /* DEV_H_ */

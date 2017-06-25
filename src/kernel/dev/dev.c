@@ -275,7 +275,7 @@ PUBLIC void bdev_writeblk(buffer_t buf)
 /*
  * Reads a block from a block device.
  */
-PUBLIC void bdev_readblk(buffer_t buf)
+PUBLIC void bdev_readblk(buffer_t buf, unsigned is_sync)
 {
 	int err;   /* Error ?        */
 	dev_t dev; /* Device number. */
@@ -291,7 +291,7 @@ PUBLIC void bdev_readblk(buffer_t buf)
 		kpanic("block device cannot read blocks");
 	
 	/* Read block. */
-	err = bdevsw[MAJOR(dev)]->readblk(MINOR(dev), buf);
+	err = bdevsw[MAJOR(dev)]->readblk(MINOR(dev), buf, is_sync);
 	if (err)
 		kpanic("failed to read block from device");
 }

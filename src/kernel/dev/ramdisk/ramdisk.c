@@ -130,7 +130,7 @@ PRIVATE ssize_t ramdisk_read(unsigned minor, char *buf, size_t n, off_t off)
 /*
  * Reads a block from a RAM disk device.
  */
-PRIVATE int ramdisk_readblk(unsigned minor, buffer_t buf)
+PRIVATE int ramdisk_readblk(unsigned minor, buffer_t buf, ...)
 {	
 	addr_t ptr;
 	
