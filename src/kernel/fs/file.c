@@ -280,7 +280,7 @@ PUBLIC int dir_add(struct inode *dinode, struct inode *inode, const char *name)
 /*
  * Reads from a regular file.
  */
-PUBLIC ssize_t file_read(struct inode *i, void *buf, size_t n, off_t off)
+PUBLIC ssize_t file_read(struct inode *inode, void *buf, size_t n, off_t off)
 {
 	char *p;             /* Writing pointer.      */
 	size_t blkoff;       /* Block offset.         */
@@ -290,26 +290,26 @@ PUBLIC ssize_t file_read(struct inode *i, void *buf, size_t n, off_t off)
 		
 	p = buf;
 	
-	inode_lock(i);
+	inode_lock(inode);
 	
 	/* Read data. */
 	do
 	{
-		blk = block_map(i, off, 0);
+		blk = block_map(inode, off, 0);
 		
 		/* End of file reached. */
 		if (blk == BLOCK_NULL)
 			goto out;
 		
-		bbuf = bread(i->dev, blk);
+		bbuf = bread(inode->dev, blk);
 			
 		blkoff = off % BLOCK_SIZE;
 		
 		/* Calculate read chunk size. */
 		chunk = (n < BLOCK_SIZE - blkoff) ? n : BLOCK_SIZE - blkoff;
-		if ((off_t)chunk > i->size - off)
+		if ((off_t)chunk > inode->size - off)
 		{
-			chunk = i->size - off;
+			chunk = inode->size - off;
 			if (chunk == 0)
 			{
 				brelse(bbuf);
@@ -325,9 +325,21 @@ PUBLIC ssize_t file_read(struct inode *i, void *buf, size_t n, off_t off)
 		p += chunk;
 	} while (n > 0);
 
+	for (int i = 0; i < N_PREFECTHING; i++)
+	{
+		blk = block_map(inode, off, 0);
+
+		if (blk == BLOCK_NULL)
+			goto out;
+
+		async_bread(inode->dev, blk);
+
+		off += BLOCK_SIZE;
+	}
+
 out:
-	inode_touch(i);
-	inode_unlock(i);
+	inode_touch(inode);
+	inode_unlock(inode);
 	return ((ssize_t)(p - (char *)buf));
 }
 

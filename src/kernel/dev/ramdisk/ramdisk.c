@@ -130,8 +130,13 @@ PRIVATE ssize_t ramdisk_read(unsigned minor, char *buf, size_t n, off_t off)
 /*
  * Reads a block from a RAM disk device.
  */
-PRIVATE int ramdisk_readblk(unsigned minor, buffer_t buf, ...)
+PRIVATE int ramdisk_readblk(unsigned minor, buffer_t buf, unsigned is_sync)
 {	
+	// just to compile
+	is_sync = 0;
+	unsigned var = is_sync;
+	is_sync = var;
+
 	addr_t ptr;
 	
 	ptr = ramdisks[minor].start + (buffer_num(buf) << BLOCK_SIZE_LOG2);

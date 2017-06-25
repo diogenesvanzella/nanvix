@@ -325,7 +325,7 @@ PUBLIC struct buffer *bread(dev_t dev, block_t num)
 /**
  * 
  */
-PUBLIC void bread(dev_t dev, block_t num, unsigned is_sync)
+PUBLIC void async_bread(dev_t dev, block_t num)
 {
 	struct buffer *buf;
 	
@@ -333,7 +333,10 @@ PUBLIC void bread(dev_t dev, block_t num, unsigned is_sync)
 	
 	/* Valid buffer? */
 	if (buf->flags & BUFFER_VALID)
-		return (buf);
+	{
+		brelse(buf);
+		return;
+	}
 
 	bdev_readblk(buf, ASYNC_READ);
 	
