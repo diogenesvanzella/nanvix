@@ -256,6 +256,7 @@ PUBLIC block_t block_map(struct inode *ip, off_t off, int create)
 	struct buffer *buf; /* Underlying buffer.     */
 	
 	logic = off/BLOCK_SIZE;
+	kprintf("parando blockmap off %d", off);
 	
 	/* File offset too big. */
 	if (off >= ip->sb->max_size)

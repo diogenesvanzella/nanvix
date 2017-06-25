@@ -134,6 +134,7 @@ repeat:
 		/* Remove buffer from the free list. */
 		if (buf->count++ == 0)
 		{
+			kprintf("parando 5");
 			buf->free_prev->free_next = buf->free_next;
 			buf->free_next->free_prev = buf->free_prev;
 		}
@@ -261,6 +262,7 @@ PUBLIC void brelse(struct buffer *buf)
 		 * Wakeup processes that were waiting
 		 * for any block to become free.
 		 */
+		//kprintf(" brelse parando - buf->count %d", buf->count);
 		wakeup(&chain);
 					
 		/* Frequently used buffer (insert in the end). */
@@ -313,13 +315,40 @@ PUBLIC struct buffer *bread(dev_t dev, block_t num)
 	if (buf->flags & BUFFER_VALID)
 		return (buf);
 
-	bdev_readblk(buf);
+	bdev_readblk(buf, SYN_READ);
 	
 	/* Update buffer flags. */
 	buf->flags |= BUFFER_VALID;
 	buf->flags &= ~BUFFER_DIRTY;
 	
 	return (buf);
+}
+
+/**
+ * Execute an buffer read asynchrously
+ */
+PUBLIC void asyn_bread(dev_t dev, block_t num) {
+	
+	struct buffer *buf;
+	
+	buf = getblk(dev, num);
+	
+	/* Valid buffer? */
+	if (buf->flags & BUFFER_VALID) 
+	{
+		//brelse(buf);
+		kprintf("parando");
+		return;
+	}
+	bdev_readblk(buf, ASYN_READ);
+
+	// /* Update buffer flags. */
+	buf->flags |= BUFFER_VALID;
+	buf->flags &= ~BUFFER_DIRTY;
+	//kprintf("buf->flags: %d", buf->flags);
+
+	kprintf("parando 2 buf->block_num %d", buf->num);
+	// brelse(buf);
 }
 
 /**

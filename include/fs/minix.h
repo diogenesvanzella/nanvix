@@ -43,6 +43,10 @@
 	#define BLOCK_SIZE (1 << BLOCK_SIZE_LOG2)
 	
 	/**
+	 * number of block to prefetching
+	 */
+	#define N_PREFETCHING 4
+	/**
 	 * @brief User for block number.
 	 */
 	typedef uint16_t block_t;

@@ -280,36 +280,72 @@ PUBLIC int dir_add(struct inode *dinode, struct inode *inode, const char *name)
 /*
  * Reads from a regular file.
  */
-PUBLIC ssize_t file_read(struct inode *i, void *buf, size_t n, off_t off)
+PUBLIC ssize_t file_read(struct inode *inode, void *buf, size_t n, off_t off)
 {
 	char *p;             /* Writing pointer.      */
 	size_t blkoff;       /* Block offset.         */
 	size_t chunk;        /* Data chunk size.      */
 	block_t blk;         /* Working block number. */
+	block_t asyn_block;
 	struct buffer *bbuf; /* Working block buffer. */
+	size_t next_offset = 0;
 		
 	p = buf;
 	
-	inode_lock(i);
+	inode_lock(inode);
 	
+	//unsigned kaka = n/1024;
+	//unsigned leitura = BLOCK_SIZE*kaka;
+
 	/* Read data. */
 	do
 	{
-		blk = block_map(i, off, 0);
+		kprintf("parando n: %d - off: %d", n, off);
+		blk = block_map(inode, off, 0);
 		
 		/* End of file reached. */
 		if (blk == BLOCK_NULL)
 			goto out;
 		
-		bbuf = bread(i->dev, blk);
-			
+		bbuf = bread(inode->dev, blk);
+
 		blkoff = off % BLOCK_SIZE;
+
+
+		next_offset = BLOCK_SIZE - blkoff;
+
+		if(n > next_offset)
+		{
+			asyn_block = block_map(inode, off + next_offset, 0);
+			if (asyn_block != BLOCK_NULL)
+				asyn_bread(inode->dev, asyn_block);
+		}
+
+		
+		// do prefecthing
+		// if (n > 0)
+		// {
+		// 	off_t prefet = (off + 2*n);
+		// 	asyn_block = block_map(inode, prefet, 0);
+		// 	kprintf("asyn_block: %d - prefet: %d", asyn_block, prefet);
+
+			
+		// 	if(asyn_block != BLOCK_NULL)
+		// 	{
+		// 		asyn_bread(inode->dev, asyn_block);
+		// 	}
+		// }
+
+
+
+		kprintf("blkoff %d", blkoff);
+		//kprintf("%d", blkoff);
 		
 		/* Calculate read chunk size. */
 		chunk = (n < BLOCK_SIZE - blkoff) ? n : BLOCK_SIZE - blkoff;
-		if ((off_t)chunk > i->size - off)
+		if ((off_t)chunk > inode->size - off)
 		{
-			chunk = i->size - off;
+			chunk = inode->size - off;
 			if (chunk == 0)
 			{
 				brelse(bbuf);
@@ -323,11 +359,13 @@ PUBLIC ssize_t file_read(struct inode *i, void *buf, size_t n, off_t off)
 		n -= chunk;
 		off += chunk;
 		p += chunk;
+		//kprintf("parando n: %d - off: %d", n, off);
 	} while (n > 0);
 
 out:
-	inode_touch(i);
-	inode_unlock(i);
+	kprintf("parando fim");
+	inode_touch(inode);
+	inode_unlock(inode);
 	return ((ssize_t)(p - (char *)buf));
 }
 

@@ -51,6 +51,12 @@
 	 */
 	#define FALSE 0 /**< False. */
 	#define TRUE  1 /**< True.  */
+
+	/**
+	 * Define constants to synchronously read data
+	 */
+	#define SYN_READ 0
+	#define ASYN_READ 1
 	
 	/**
 	 * @name Other Constants

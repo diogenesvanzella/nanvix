@@ -69,6 +69,7 @@
 	EXTERN void blkunlock(buffer_t);
 	EXTERN void brelse(buffer_t);
 	EXTERN buffer_t bread(dev_t, block_t);
+	EXTERN void asyn_bread(dev_t, block_t);
 	EXTERN void bwrite(buffer_t);
 	EXTERN void buffer_dirty(buffer_t, int);
 	EXTERN void *buffer_data(const_buffer_t);
