@@ -323,7 +323,10 @@ PUBLIC struct buffer *bread(dev_t dev, block_t num)
 }
 
 /**
+ * @brief Reads a block from a device.
  * 
+ * @details Reads the block numbered num asynchronously 
+ *          from the device numbered dev.
  */
 PUBLIC void async_bread(dev_t dev, block_t num)
 {

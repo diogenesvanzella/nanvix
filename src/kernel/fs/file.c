@@ -325,6 +325,7 @@ PUBLIC ssize_t file_read(struct inode *inode, void *buf, size_t n, off_t off)
 		p += chunk;
 	} while (n > 0);
 
+	/* Do Pre-Fetching N blocks ahead*/
 	for (int i = 0; i < N_PREFECTHING; i++)
 	{
 		blk = block_map(inode, off, 0);

@@ -132,7 +132,7 @@ PRIVATE ssize_t ramdisk_read(unsigned minor, char *buf, size_t n, off_t off)
  */
 PRIVATE int ramdisk_readblk(unsigned minor, buffer_t buf, unsigned is_sync)
 {	
-	// just to compile
+	/* operations just to compile */
 	is_sync = 0;
 	unsigned var = is_sync;
 	is_sync = var;
